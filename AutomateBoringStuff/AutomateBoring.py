@@ -1209,21 +1209,21 @@ exampleFile = open("example.html")
 exampleSoup = bs4.BeautifulSoup(exampleFile.read(), "html.parser")
 elementSoupSelect = exampleSoup.select("#author")
 # Can also do select("#author")[0] to just store the first element
-print("Number of author tags: ", len(elements))
-print("Type of elements object: ", type(elements))
-print("Type of elements[0]: ", type(elements[0]))
-print("Whole elements[0] tag  str(elements[0]): ", str(elements[0]))
-print("Text inside elements[0] elements[0].getText(): ", elements[0].getText())
-print("Attribute / tag of elements[0] elements[0].attrs: ", elements[0].attrs)
+print("Number of author tags: ", len(elementSoupSelect))
+print("Type of elementSoupSelect object: ", type(elementSoupSelect))
+print("Type of elementSoupSelect[0]: ", type(elementSoupSelect[0]))
+print("Whole elementSoupSelect[0] tag  str(elementSoupSelect[0]): ", str(elementSoupSelect[0]))
+print("Text inside elementSoupSelect[0] elementSoupSelect[0].getText(): ", elementSoupSelect[0].getText())
+print("Attribute / tag of elementSoupSelect[0] elementSoupSelect[0].attrs: ", elementSoupSelect[0].attrs)
 
 # There are many other html elements accessible by bs4 variables
-print("resultSoup.title: ", exampleSoup.title) # The title tag and text
-print("resultSoup.title.name: ", exampleSoup.title.name) # name of the tag
-print("resultSoup.title.string: ", exampleSoup.title.string) # text of the tag without the tag
+print("elementSoupSelect.title: ", exampleSoup.title) # The title tag and text
+print("elementSoupSelect.title.name: ", exampleSoup.title.name) # name of the tag
+print("elementSoupSelect.title.string: ", exampleSoup.title.string) # text of the tag without the tag
 # Can also do resultsSoup.p to print paragraph tags
 
 # Prints all the paragraph in soup object
-for paragraph in resultsSoup.find_all("p"):
+for paragraph in exampleSoup.find_all("p"):
     print(paragraph.string)
 
 # https://stackoverflow.com/questions/14257717/python-beautifulsoup-wildcard-attribute-id-search
@@ -1259,3 +1259,172 @@ for paragraph in resultsSoup.find_all("p"):
 #     print(item.get("href"))
 
 # helpful to do p = soupObject.p
+###########################################################
+# Using the selenium package
+
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from time import sleep
+
+browser = webdriver.Firefox(executable_path=r'/Users/X/geckodriver')
+browser.get('https://inventwithpython.com')
+# Firefox driver aka Gecko
+#  https://github.com/mozilla/geckodriver/releases
+# Chrome driver
+# https://sites.google.com/a/chromium.org/chromedriver/downloads
+
+# Selenium also has a method for finding elements in html
+# Elements are case sensitive
+# browser.find_element_by_class_name("cssClassNameHere")
+# browser.find_element_by_id("idAttrValue")
+# browser.find_elements_by_link_text("aTagText")
+
+try:
+    elem = browser.find_element_by_class_name("cover-thumb")
+    print("Found <%s> element with that class name!" % (elem.tag_name))
+except:
+    print("Was not able to find an element with that name.")
+
+linkElem = browser.find_element_by_link_text(("Read Online for Free"))
+print(type(linkElem))
+linkElem.click()
+
+browser.get("https://login.metafilter.com/")
+userElem = browser.find_element_by_id("user_name")
+userElem.send_keys("aUserName343")
+passwordElem = browser.find_element_by_id("user_pass")
+passwordElem.send_keys("is this my password?")
+passwordElem.submit() # Same as clicking the submit button
+sleep(5)
+# Sending keys to the html tag lets the page move with arrow keys
+print("Sleep over XD!")
+htmlElem = browser.find_element_by_tag_name("html")
+htmlElem.send_keys(Keys.END)
+sleep(2)
+htmlElem.send_keys(Keys.HOME)
+
+# Special Keys, self explanatory
+# Keys.DOWN, Keys.UP, Keys.LEFT, Keys.RIGHT
+# Keys.ENTER, Keys.RETURN
+# Keys.HOME, Keys.END, Keys.PAGE_DOWN, Keys.PAGE_UP
+# Keys.ESCAPE, Keys.BACK_SPACE, Keys.DELETE
+# Keys.F1, Keys.F2, ..., Keys.F12
+# Keys.TAB
+
+browser.back() # Goes back a page
+browser.forward() # Goes forward a page
+browser.refresh() # Refreshes the page
+
+if int(input("Close: ")) == 0:
+    browser.quit() # Quits the browser
+
+###########################################################
+# Working with Excel spreadsheets
+# I have been looking forward to this since I started this course!!
+
+import openpyxl as opxl
+
+os.chdir("/Users/X")
+fileFound = True
+
+try:
+    print("TRYYYYYYYYYY")
+    wb = opxl.load_workbook("/Users/X/automate_online-materials/example.xlsx")
+except FileNotFoundError:
+    print("EXCEPTTTTTTT")
+    wb = opxl.load_workbook("example.xlsx")
+
+wb.sheetnames
+# wb.get_sheet_names() # Same thing
+
+sheet = wb['Sheet3']
+# sheet = wb.get_sheet_by_name("Sheet1") # Same thing
+sheet.title
+anotherSheet = wb.active # Active is sheet on top when file is opened
+
+# Gets the first Sheet
+sheets = wb.sheetnames[0]
+sheets = wb[sheets]
+sheets.max_row # Highest row number
+sheets.max_column # Highest column number
+
+sheet = wb["Sheet1"]
+sheet["A1"].value
+# datetime.datetime(2015, 4, 5, 13, 34, 2)
+# But data is stored like this in the excel sheet as excel datetime object
+# 4/5/2015  1:34:02 PM
+
+str(sheet["B1"].value)
+
+# Starts at 1 and not 0
+sheet.cell(1,2) # Gets cell by row (1) and column (2)
+sheet.cell(1,2).value
+
+for i in range(1, 8):
+    # Iterates through a column
+    print("A" + str(i) + ": " + str(sheet.cell(i, 1).value))
+    # A1: 2015-04-05 13:34:02 and so on...
+
+from openpyxl.utils import get_column_letter, column_index_from_string
+get_column_letter(1) # 'A'
+get_column_letter(901) #'AHQ'
+get_column_letter(sheets.max_column)
+column_index_from_string('A') # 1
+column_index_from_string('AA') # 27
+
+letters = ['A', 'B', 'C', 'D', 'E', 'F']
+for i in range(1, 4):
+    # Iterates through a row
+    # Define a list of abc's to get column numbers or use another method
+    print(str(letters[i - 1]) + str(i) + ": " + str(sheets.cell(1, i).value))
+
+if sheets.cell(15, 15).value == None:
+    print("None")
+else:
+    print("Nope")
+
+# Creates a new Workbook object
+wb = opxl.Workbook()
+wb.sheetnames # ['Sheet']
+sheet = wb["Sheet"]
+sheet["A1"].value # is None becuase there is no data
+sheet["A1"] = 234
+sheet["A2"] = "Hawk moth"
+
+from pathlib import Path
+
+if Path.exists(Path("/Users/X/IMadeThis.xlsx")):
+    print("No need to save, I've already created this file.")
+else:
+    print("File not created, now saved.")
+    wb.save("/Users/X/IMadeThis.xlsx")
+
+sheet2 = wb.create_sheet()
+sheet2.title # Sheet1
+sheet2.title = "Hey hey hey"
+wb.get_sheet_names
+wb.save("/Users/X/IMadeThisOneTOOOO!!!.xlsx")
+
+wb.create_sheet(index = 0, title = "But this sheet!!!")
+wb.save("/Users/X/IMadeThisNumber_3333.xlsx")
+
+del wb["But this sheet!!!"]
+wb.get_sheet_names
+
+# Getting a group of rows and columns
+# Then iterating through the group
+wb = opxl.load_workbook('example.xlsx')
+sheet = wb['Sheet1']
+tuple(sheet['A1':'C3']) # Get all cells from A1 to C3.
+
+for rowOfCellObjects in sheet['A1':'C3']:
+    for cellObj in rowOfCellObjects:
+        print(cellObj.coordinate, cellObj.value)
+    print('--- END OF ROW ---')
+
+list(sheet.columns)[0] # the Cell tuple objects in column A
+
+val = list(sheet.columns)[0] # A1
+val[0].value # A1 value
+
+# Left off here, Project: Updating a Spreadsheet
